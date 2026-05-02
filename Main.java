@@ -1,10 +1,10 @@
-import java.util.Scanner;
+import Features.AssignWorkDuties;
 import Features.KeycardAccessFeatures;
 import Features.ManageOccupantProfiles;
-import Features.AssignWorkDuties;
 import Features.ManageRoomReservations;
-import Models.Occupant;
 import Models.Keycard;
+import Models.Occupant;
+import java.util.Scanner;
 
 public class Main {
     private static Scanner sc = new Scanner(System.in);
@@ -170,6 +170,8 @@ public class Main {
                         break;
                     }
                     System.out.println("\nLaunching Room Reservation System...\n");
+                    // Pass the logged-in user's name to the reservation system
+                    ManageRoomReservations.setCurrentUser(currentUser.getFullName());
                     ManageRoomReservations.main(new String[]{});
                     break;
 
