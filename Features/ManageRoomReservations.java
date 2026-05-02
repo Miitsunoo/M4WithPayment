@@ -1,5 +1,9 @@
 package Features;
 
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -8,6 +12,11 @@ public class ManageRoomReservations {
     // POLYMORPHISM: List of superclass
     static ArrayList<Reservation> reservations = new ArrayList<>();
     static int nextId = 1;
+    static String loggedOccupantLastName = null;
+
+    public static void setLoggedOccupantLastName(String lastName) {
+        loggedOccupantLastName = lastName;
+    }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
@@ -47,8 +56,14 @@ public class ManageRoomReservations {
 
         System.out.println("\n--- ROOM / SPACE RESERVATION ---");
 
-        System.out.print("Occupant Name: ");
-        String name = sc.nextLine();
+        String name;
+        if (loggedOccupantLastName != null && !loggedOccupantLastName.isEmpty()) {
+            name = loggedOccupantLastName;
+            System.out.println("Occupant Name: " + name + " (from login last name)");
+        } else {
+            System.out.print("Occupant Name: ");
+            name = sc.nextLine();
+        }
 
         System.out.print("Room/Space Name: ");
         String room = sc.nextLine();
@@ -56,20 +71,39 @@ public class ManageRoomReservations {
         System.out.print("Schedule (e.g., 10AM-12PM): ");
         String schedule = sc.nextLine();
 
-        // Check if already reserved
+        LocalTime[] parsedSchedule = parseSchedule(schedule);
+        if (parsedSchedule == null) {
+            System.out.println("Invalid schedule format. Use examples like 10AM-12PM or 09:00-11:00.");
+            return;
+        }
+
+        LocalTime startTime = parsedSchedule[0];
+        LocalTime endTime = parsedSchedule[1];
+        double durationHours = computeDurationHours(startTime, endTime);
+
+        if (durationHours <= 0) {
+            System.out.println("Invalid schedule. End time must be later than start time.");
+            return;
+        }
+
         for (Reservation r : reservations) {
             if (r.getRoom().equalsIgnoreCase(room) &&
-                r.getSchedule().equalsIgnoreCase(schedule)) {
+                timesOverlap(r.getStartTime(), r.getEndTime(), startTime, endTime)) {
 
-                System.out.println("This room is already reserved for that schedule.");
+                System.out.println("This room is already reserved for that schedule or an overlapping time.");
                 return;
             }
         }
 
-        RoomReservation newRes = new RoomReservation(nextId++, name, room, schedule);
+        RoomReservation newRes = new RoomReservation(nextId++, name, room, schedule, startTime, endTime);
         reservations.add(newRes);
 
+        double roomRate = 8.0;
+        RoomReservationPayment payment = new RoomReservationPayment(roomRate, durationHours, room);
+        payment.processReservationPayment(payment.getFinalAmount());
+
         System.out.println("Reservation successful.");
+        System.out.println("Total charged: $" + String.format("%.2f", payment.getFinalAmount()));
     }
 
     // FEATURE 2: SCHEDULING & AVAILABILITY
@@ -115,6 +149,52 @@ public class ManageRoomReservations {
         System.out.println("-------------------------------");
     }
 
+    static LocalTime[] parseSchedule(String schedule) {
+        String[] parts = schedule.trim().split("\\s*[-–\\u2013\\u2014]\\s*");
+        if (parts.length != 2) {
+            return null;
+        }
+
+        LocalTime start = parseTime(parts[0]);
+        LocalTime end = parseTime(parts[1]);
+        if (start == null || end == null) {
+            return null;
+        }
+
+        return new LocalTime[] { start, end };
+    }
+
+    static LocalTime parseTime(String timeText) {
+        if (timeText == null) {
+            return null;
+        }
+
+        String text = timeText.trim().toUpperCase().replaceAll("\\s+", "");
+
+        String[] patterns = {
+            "h:mma",
+            "ha",
+            "H:mm",
+            "H"
+        };
+
+        for (String pattern : patterns) {
+            try {
+                return LocalTime.parse(text, DateTimeFormatter.ofPattern(pattern));
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+        return null;
+    }
+
+    static double computeDurationHours(LocalTime start, LocalTime end) {
+        return Duration.between(start, end).toMinutes() / 60.0;
+    }
+
+    static boolean timesOverlap(LocalTime start1, LocalTime end1, LocalTime start2, LocalTime end2) {
+        return start1.isBefore(end2) && start2.isBefore(end1);
+    }
+
     // SUPERCLASS (ABSTRACTION)
     static abstract class Reservation {
 
@@ -122,12 +202,16 @@ public class ManageRoomReservations {
         protected String name;
         protected String room;
         protected String schedule;
+        protected LocalTime startTime;
+        protected LocalTime endTime;
 
-        public Reservation(int id, String name, String room, String schedule) {
+        public Reservation(int id, String name, String room, String schedule, LocalTime startTime, LocalTime endTime) {
             this.id = id;
             this.name = name;
             this.room = room;
             this.schedule = schedule;
+            this.startTime = startTime;
+            this.endTime = endTime;
         }
 
         public abstract String getDetails();
@@ -136,6 +220,8 @@ public class ManageRoomReservations {
         public String getName() { return name; }
         public String getRoom() { return room; }
         public String getSchedule() { return schedule; }
+        public LocalTime getStartTime() { return startTime; }
+        public LocalTime getEndTime() { return endTime; }
     }
 
     // SUBCLASS (INHERITANCE + OVERRIDING)
@@ -143,8 +229,8 @@ public class ManageRoomReservations {
 
         private String status;
 
-        public RoomReservation(int id, String name, String room, String schedule) {
-            super(id, name, room, schedule);
+        public RoomReservation(int id, String name, String room, String schedule, LocalTime startTime, LocalTime endTime) {
+            super(id, name, room, schedule, startTime, endTime);
             this.status = "Reserved";
         }
 

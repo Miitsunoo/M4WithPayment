@@ -170,6 +170,7 @@ public class Main {
                         break;
                     }
                     System.out.println("\nLaunching Room Reservation System...\n");
+                    ManageRoomReservations.setLoggedOccupantLastName(currentUser.getLastName());
                     ManageRoomReservations.main(new String[]{});
                     break;
 

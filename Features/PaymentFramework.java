@@ -12,31 +12,34 @@ public abstract class PaymentFramework {
     public abstract boolean validatePayment();
 
     public void applyTax() {
-        // Logic for tax calculation
-        double taxAmount = subtotal - (subtotal / (1 + TAX_RATE));
-        System.out.println("VAT Amount (12%): " + taxAmount);
+        double taxAmount = subtotal * TAX_RATE;
+        System.out.println("VAT Amount (12%): $" + String.format("%.2f", taxAmount));
     }
 
     public void applyDiscount(double discountAmount) {
         this.discount = discountAmount;
-        this.subtotal -= discountAmount;
+        if (discountAmount > 0 && discountAmount <= subtotal) {
+            this.subtotal -= discountAmount;
+        }
     }
 
     public void computeTotal() {
-        System.out.println("Final Computed Total: " + this.subtotal);
+        double total = subtotal + (subtotal * TAX_RATE);
+        System.out.println("Final Computed Total: $" + String.format("%.2f", total));
     }
 
     public void finalizeTransaction() {
         System.out.println("Transaction " + transactionID + " finalized.");
     }
 
-    public void processInvoice(double discount, double balance, double tax) {
+    public void processInvoice(double discount, double balance, double taxRate) {
         this.discount = discount;
         this.balance = balance;
 
         if (validatePayment()) {
-            applyDiscount(this.discount);
-            applyDiscount(this.discount);
+            if (discount > 0) {
+                applyDiscount(discount);
+            }
             applyTax();
             computeTotal();
             finalizeTransaction();
