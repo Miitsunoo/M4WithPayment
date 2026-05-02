@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 public class RoomReservationPayment extends PaymentFramework {
 
     private double roomRate;
-    private int durationHours;
+    private double durationHours;
     private String roomName;
 
-    public RoomReservationPayment(double roomRate, int durationHours, String roomName) {
+    public RoomReservationPayment(double roomRate, double durationHours, String roomName) {
         this.roomRate = roomRate;
         this.durationHours = durationHours;
         this.roomName = roomName;
@@ -42,16 +42,12 @@ public class RoomReservationPayment extends PaymentFramework {
      */
     @Override
     public boolean validatePayment() {
-        // Check if balance is sufficient or if payment method is valid
-        // For now, we can assume the customer has the funds
-        // In a real system, this would check against account balance
         System.out.println("\n--- Payment Validation ---");
         System.out.println("Room: " + roomName);
-        System.out.println("Duration: " + durationHours + " hours");
+        System.out.println("Duration: " + String.format("%.2f", durationHours) + " hours");
         System.out.println("Room Rate: $" + String.format("%.2f", roomRate) + "/hour");
         System.out.println("Subtotal: $" + String.format("%.2f", subtotal));
-        
-        return true; // Payment validated successfully
+        return true;
     }
 
     /**
@@ -59,11 +55,11 @@ public class RoomReservationPayment extends PaymentFramework {
      */
     public void processReservationPayment(double setBalance) {
         this.balance = setBalance;
-        
+
         System.out.println("\n╔════════════════════════════════════════╗");
         System.out.println("║     PROCESSING PAYMENT FOR RESERVATION     ║");
         System.out.println("╚════════════════════════════════════════╝");
-        
+
         processInvoice(0, balance, TAX_RATE);
         displayIncomeStatement();
     }
@@ -80,34 +76,34 @@ public class RoomReservationPayment extends PaymentFramework {
         System.out.println("║                    INCOME STATEMENT                          ║");
         System.out.println("║                 Room Reservation Invoice                     ║");
         System.out.println("╚══════════════════════════════════════════════════════════════╝");
-        
+
         System.out.println("\nTransaction Details:");
         System.out.println("══════════════════════════════════════════════════════════════");
         System.out.println("Transaction ID          : " + transactionID);
         System.out.println("Room Name              : " + roomName);
-        System.out.println("Duration               : " + durationHours + " hours");
+        System.out.println("Duration               : " + String.format("%.2f", durationHours) + " hours");
         System.out.println("Room Rate              : $" + String.format("%.2f", roomRate) + "/hour");
-        
+
         System.out.println("\nFinancial Summary:");
         System.out.println("══════════════════════════════════════════════════════════════");
         System.out.println("Base Amount            : $" + String.format("%10.2f", baseAmount));
-        
+
         if (discount > 0) {
             System.out.println("Discount Applied       : $" + String.format("%10.2f", discount));
             baseAmount -= discount;
             System.out.println("Subtotal (after disc.) : $" + String.format("%10.2f", baseAmount));
         }
-        
+
         taxAmount = baseAmount * TAX_RATE;
         System.out.println("Tax (12% VAT)          : $" + String.format("%10.2f", taxAmount));
         System.out.println("══════════════════════════════════════════════════════════════");
         totalAmount = baseAmount + taxAmount;
         System.out.println("TOTAL AMOUNT DUE       : $" + String.format("%10.2f", totalAmount));
         System.out.println("══════════════════════════════════════════════════════════════");
-        
+
         System.out.println("\nPayment Status         : ✓ COMPLETED");
         System.out.println("Date & Time            : " + LocalDateTime.now());
-        
+
         System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
         System.out.println("║          Thank you for your reservation!                     ║");
         System.out.println("╚══════════════════════════════════════════════════════════════╝\n");
@@ -129,7 +125,7 @@ public class RoomReservationPayment extends PaymentFramework {
      * Get the final amount after tax
      */
     public double getFinalAmount() {
-        return subtotal;
+        return subtotal + (subtotal * TAX_RATE);
     }
 
     /**
@@ -147,7 +143,7 @@ public class RoomReservationPayment extends PaymentFramework {
         return roomRate;
     }
 
-    public int getDurationHours() {
+    public double getDurationHours() {
         return durationHours;
     }
 

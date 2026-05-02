@@ -170,8 +170,7 @@ public class Main {
                         break;
                     }
                     System.out.println("\nLaunching Room Reservation System...\n");
-                    // Pass the logged-in user's name to the reservation system
-                    ManageRoomReservations.setCurrentUser(currentUser.getFullName());
+                    ManageRoomReservations.setLoggedOccupantLastName(currentUser.getLastName());
                     ManageRoomReservations.main(new String[]{});
                     break;
 
