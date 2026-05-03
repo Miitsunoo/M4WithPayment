@@ -449,7 +449,7 @@ public class OccupantRepo {
             if (!keycards.isEmpty()) {
                 System.out.println("Keycards:");
                 for (Models.Keycard keycard : keycards) {
-                    System.out.println("  • " + keycard.getKeycardCode() +
+                    System.out.println("  - " + keycard.getKeycardCode() +
                                      " (Level: " + keycard.getAccessLevelName() +
                                      ", Active: " + keycard.isActive() + ")");
                 }

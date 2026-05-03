@@ -361,8 +361,7 @@ public class KeycardRepo {
                     System.out.println("Failed to assign keycard to " + occupant.getFullName());
                 }
             } else {
-                System.out.println("⏭️  " + occupant.getFullName() + " already has " +
-                                 existingKeycards.size() + " keycard(s)");
+                System.out.println("Already has " + existingKeycards.size() + " keycard(s): " + occupant.getFullName());
             }
         }
 
@@ -390,9 +389,9 @@ public class KeycardRepo {
             if (success) {
                 String oldLevel = keycard.getAccessLevelName();
                 String newLevelName = getAccessLevelName(newLevel);
-                System.out.println("🔄 Updated " + keycard.getKeycardCode() +
+                System.out.println("Updated " + keycard.getKeycardCode() +
                                  " (Occupant " + keycard.getOccupantId() +
-                                 "): " + oldLevel + " → " + newLevelName);
+                                 "): " + oldLevel + " -> " + newLevelName);
                 updatedCount++;
             } else {
                 System.out.println("Failed to update " + keycard.getKeycardCode());

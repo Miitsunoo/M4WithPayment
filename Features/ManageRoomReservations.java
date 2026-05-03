@@ -13,9 +13,14 @@ public class ManageRoomReservations {
     static ArrayList<Reservation> reservations = new ArrayList<>();
     static int nextId = 1;
     static String loggedOccupantLastName = null;
+    static String currentUserName = null;
 
     public static void setLoggedOccupantLastName(String lastName) {
         loggedOccupantLastName = lastName;
+    }
+
+    public static void setCurrentUser(String name) {
+        currentUserName = name;
     }
 
     public static void main(String[] args) {
@@ -29,7 +34,8 @@ public class ManageRoomReservations {
             System.out.println("[1] Reserve Room / Space");
             System.out.println("[2] View Schedule & Availability");
             System.out.println("[3] View All Reservations");
-            System.out.println("[4] Exit");
+            System.out.println("[4] View Income Statement");
+            System.out.println("[5] Exit");
             System.out.print("Select Option: ");
 
             try {
@@ -44,11 +50,12 @@ public class ManageRoomReservations {
                 case 1: reserveRoom(sc); break;
                 case 2: checkAvailability(sc); break;
                 case 3: viewAll(); break;
-                case 4: System.out.println("Exiting system..."); break;
+                case 4: RoomReservationPayment.displayAllTransactions(); break;
+                case 5: System.out.println("Exiting system..."); break;
                 default: System.out.println("Invalid choice.");
             }
 
-        } while (choice != 4);
+        } while (choice != 5);
     }
 
     /**
@@ -91,15 +98,6 @@ public class ManageRoomReservations {
         return null;
     }
 
-        String name;
-        if (loggedOccupantLastName != null && !loggedOccupantLastName.isEmpty()) {
-            name = loggedOccupantLastName;
-            System.out.println("Occupant Name: " + name + " (from login last name)");
-        } else {
-            System.out.print("Occupant Name: ");
-            name = sc.nextLine();
-        }
-
     /**
      * Check if two time ranges overlap
      */
@@ -113,16 +111,10 @@ public class ManageRoomReservations {
      * Check if a room is available for the specified schedule
      */
     static boolean isRoomAvailable(String room, String schedule) {
-        int[] requestedTime = getScheduleTimeRange(schedule);
-        if (requestedTime == null) {
-            System.out.println("Invalid schedule format. Use format like '10AM-12PM'");
-            return false;
-        }
-
         LocalTime[] parsedSchedule = parseSchedule(schedule);
         if (parsedSchedule == null) {
             System.out.println("Invalid schedule format. Use examples like 10AM-12PM or 09:00-11:00.");
-            return;
+            return false;
         }
 
         LocalTime startTime = parsedSchedule[0];
@@ -131,7 +123,7 @@ public class ManageRoomReservations {
 
         if (durationHours <= 0) {
             System.out.println("Invalid schedule. End time must be later than start time.");
-            return;
+            return false;
         }
 
         for (Reservation r : reservations) {
@@ -139,56 +131,217 @@ public class ManageRoomReservations {
                 timesOverlap(r.getStartTime(), r.getEndTime(), startTime, endTime)) {
 
                 System.out.println("This room is already reserved for that schedule or an overlapping time.");
-                return;
+                return false;
             }
         }
         return true;
     }
 
-    // FEATURE 1: ROOM & SPACE RESERVATION WITH PAYMENT INTEGRATION
-    static void reserveRoom(Scanner sc) {
-
-        RoomReservation newRes = new RoomReservation(nextId++, name, room, schedule, startTime, endTime);
-        reservations.add(newRes);
-
-        double roomRate = 8.0;
-        RoomReservationPayment payment = new RoomReservationPayment(roomRate, durationHours, room);
-        payment.processReservationPayment(payment.getFinalAmount());
-
-        System.out.println("Reservation successful.");
-        System.out.println("Total charged: $" + String.format("%.2f", payment.getFinalAmount()));
+    /**
+     * Validate if a room number is within the valid range (101-110, 201-210, 301-310)
+     */
+    static boolean isValidRoomNumber(String room) {
+        try {
+            int roomNum = Integer.parseInt(room);
+            // Check if room is in valid ranges: 101-110, 201-210, 301-310
+            return (roomNum >= 101 && roomNum <= 110) ||
+                   (roomNum >= 201 && roomNum <= 210) ||
+                   (roomNum >= 301 && roomNum <= 310);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
-    // FEATURE 2: SCHEDULING & AVAILABILITY
-    static void checkAvailability(Scanner sc) {
-
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║   ROOM SCHEDULE & AVAILABILITY          ║");
-        System.out.println("╚════════════════════════════════════════╝");
-
-        System.out.print("Enter Room/Space Name: ");
-        String room = sc.nextLine().trim();
-
-        boolean found = false;
-
-        for (Reservation r : reservations) {
-            if (r.getRoom().equalsIgnoreCase(room)) {
-                System.out.println("\n--- SCHEDULED TIMES ---");
-                display(r);
-                found = true;
+    // FEATURE 1: ROOM & SPACE RESERVATION WITH PAYMENT INTEGRATION
+    static void reserveRoom(Scanner sc) {
+        String name;
+        if (currentUserName != null && !currentUserName.isEmpty()) {
+            name = currentUserName;
+            System.out.println("Occupant Name: " + name);
+        } else if (loggedOccupantLastName != null && !loggedOccupantLastName.isEmpty()) {
+            name = loggedOccupantLastName;
+            System.out.println("Occupant Name: " + name);
+        } else {
+            System.out.print("Occupant Name: ");
+            name = sc.nextLine().trim();
+            if (name.isEmpty()) {
+                System.out.println("Occupant name cannot be empty.");
+                return;
             }
         }
 
-        if (!found) {
-            System.out.println("\n✓ Room '" + room + "' is fully available.");
+        System.out.print("Enter Room Number (101-110, 201-210, 301-310): ");
+        String room = sc.nextLine().trim();
+        if (room.isEmpty()) {
+            System.out.println("Room number cannot be empty.");
+            return;
         }
+
+        // Validate room number format
+        if (!isValidRoomNumber(room)) {
+            System.out.println("Invalid room number. Please enter a valid room (101-110, 201-210, or 301-310).");
+            return;
+        }
+
+        System.out.print("Enter Schedule (e.g. 10AM-12PM or 09:00-11:00): ");
+        String schedule = sc.nextLine().trim();
+        LocalTime[] parsedSchedule = parseSchedule(schedule);
+        if (parsedSchedule == null) {
+            System.out.println("Invalid schedule format. Use examples like 10AM-12PM or 09:00-11:00.");
+            return;
+        }
+
+        if (!isRoomAvailable(room, schedule)) {
+            return;
+        }
+
+        LocalTime startTime = parsedSchedule[0];
+        LocalTime endTime = parsedSchedule[1];
+        double scheduleDurationHours = computeDurationHours(startTime, endTime);
+        if (scheduleDurationHours <= 0) {
+            System.out.println("Invalid schedule. End time must be later than start time.");
+            return;
+        }
+
+        System.out.print("Enter Room Rate ($): ");
+        double roomRate;
+        try {
+            roomRate = Double.parseDouble(sc.nextLine().trim());
+            if (roomRate <= 0) {
+                System.out.println("Invalid room rate. Must be a positive number.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid room rate. Please enter a valid number.");
+            return;
+        }
+
+        System.out.print("Enter Duration in hours: ");
+        int durationHours;
+        try {
+            durationHours = Integer.parseInt(sc.nextLine().trim());
+            if (durationHours <= 0) {
+                System.out.println("Invalid duration. Must be a positive integer.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid duration. Please enter a valid integer.");
+            return;
+        }
+
+        System.out.print("Enter discount amount (0 for none): ");
+        double discountAmount;
+        try {
+            discountAmount = Double.parseDouble(sc.nextLine().trim());
+            if (discountAmount < 0) {
+                System.out.println("Invalid discount amount. Must be zero or positive.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid discount amount. Please enter a valid number.");
+            return;
+        }
+
+        RoomReservationPayment payment = new RoomReservationPayment(roomRate, durationHours, room);
+        if (discountAmount > 0) {
+            payment.applyReservationDiscount(discountAmount);
+        }
+
+        double balance = payment.getFinalAmount();
+        payment.processReservationPayment(balance);
+
+        RoomReservation newRes = new RoomReservation(nextId++, name, room, schedule, startTime, endTime, payment.getTransactionID(), balance);
+        reservations.add(newRes);
+
+        System.out.println("Reservation successful.");
+        System.out.println("Total charged: $" + String.format("%.2f", balance));
+    }
+
+    // FEATURE 2: SCHEDULING & AVAILABILITY - FLOOR-BASED ROOM INVENTORY
+    static void checkAvailability(Scanner sc) {
+        int currentFloor = 1;  // Start at Floor 1
+        int choice = 0;
+
+        while (true) {
+            displayFloorRooms(currentFloor);
+
+            System.out.print("\nSelect Option: ");
+            try {
+                choice = sc.nextInt();
+                sc.nextLine();
+            } catch (Exception e) {
+                sc.nextLine();
+                System.out.println("Invalid input.");
+                continue;
+            }
+
+            switch (choice) {
+                case 1:  // Next Floor
+                    if (currentFloor < 3) {
+                        currentFloor++;
+                    } else {
+                        System.out.println("You are already on the last floor.");
+                    }
+                    break;
+                case 2:  // Previous Floor (only shown if available)
+                    if (currentFloor > 1) {
+                        currentFloor--;
+                    } else {
+                        System.out.println("You are already on the first floor.");
+                    }
+                    break;
+                case 0:  // Exit
+                    return;
+                default:
+                    System.out.println("Invalid choice.");
+            }
+        }
+    }
+
+    /**
+     * Display all rooms on a specific floor with their status
+     */
+    static void displayFloorRooms(int floor) {
+        System.out.println("\n========================================");
+        System.out.println("Floor " + floor);
+        System.out.println("========================================\n");
+
+        int startRoom = floor * 100 + 1;
+        int endRoom = startRoom + 10;
+
+        for (int roomNum = startRoom; roomNum < endRoom; roomNum++) {
+            String roomName = String.valueOf(roomNum);
+            String status = getRoomStatus(roomName);
+            System.out.println(roomNum + " - " + status);
+        }
+
+        System.out.println("\n========================================");
+        if (floor < 3) {
+            System.out.println("(1) Next Floor");
+        }
+        if (floor > 1) {
+            System.out.println("(2) Previous Floor");
+        }
+        System.out.println("(0) Exit");
+    }
+
+    /**
+     * Get the status of a specific room (Available or Reserved with time)
+     */
+    static String getRoomStatus(String roomNumber) {
+        for (Reservation r : reservations) {
+            if (r.getRoom().equals(roomNumber)) {
+                return "Reserved (" + r.getSchedule() + ")";
+            }
+        }
+        return "Available";
     }
 
     static void viewAll() {
 
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║      ALL RESERVATIONS                   ║");
-        System.out.println("╚════════════════════════════════════════╝");
+        System.out.println("\n========================================");
+        System.out.println("ALL RESERVATIONS");
+        System.out.println("========================================");
 
         if (reservations.isEmpty()) {
             System.out.println("No reservations found.");
@@ -201,7 +354,7 @@ public class ManageRoomReservations {
     }
 
     static void display(Reservation r) {
-        System.out.println("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        System.out.println("\n---------------------------------------");
         System.out.println("Reservation ID : " + r.getId());
         System.out.println("Occupant Name  : " + r.getName());
         System.out.println("Room/Space     : " + r.getRoom());
@@ -212,11 +365,11 @@ public class ManageRoomReservations {
             System.out.println("Transaction ID : " + rr.getTransactionID());
             System.out.println("Payment Amount : $" + String.format("%.2f", rr.getPaymentAmount()));
         }
-        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        System.out.println("---------------------------------------");
     }
 
     static LocalTime[] parseSchedule(String schedule) {
-        String[] parts = schedule.trim().split("\\s*[-–\\u2013\\u2014]\\s*");
+        String[] parts = schedule.trim().split("\\s*-\\s*");
         if (parts.length != 2) {
             return null;
         }
@@ -301,6 +454,13 @@ public class ManageRoomReservations {
         public RoomReservation(int id, String name, String room, String schedule, LocalTime startTime, LocalTime endTime) {
             super(id, name, room, schedule, startTime, endTime);
             this.status = "Reserved";
+        }
+
+        public RoomReservation(int id, String name, String room, String schedule, LocalTime startTime, LocalTime endTime, String transactionID, double paymentAmount) {
+            super(id, name, room, schedule, startTime, endTime);
+            this.status = "Reserved";
+            this.transactionID = transactionID;
+            this.paymentAmount = paymentAmount;
         }
 
         @Override

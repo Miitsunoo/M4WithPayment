@@ -112,7 +112,7 @@ public class Occupant {
      * @return Formatted display string
      */
     public String getFormattedDisplay() {
-        return String.format("👤 %s %s (ID: %d) | 📧 %s | 📞 %s",
+        return String.format("%s %s (ID: %d) | Email: %s | Phone: %s",
                 firstName, lastName, occupantId, email, phone);
     }
 

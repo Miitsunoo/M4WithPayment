@@ -17,9 +17,9 @@ public class Main {
 
         // Require login first
         if (!performLogin()) {
-            System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-            System.out.println("║         Access Denied. System terminating.                ║");
-            System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+            System.out.println("\n===============================================");
+            System.out.println("Access Denied. System terminating.");
+            System.out.println("===============================================\n");
             return;
         }
 
@@ -28,10 +28,10 @@ public class Main {
     }
 
     private static void displayWelcome() {
-        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║           BUNKER MANAGEMENT SYSTEM                        ║");
-        System.out.println("║         Secure Access Control System                      ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("\n===============================================");
+        System.out.println("BUNKER MANAGEMENT SYSTEM");
+        System.out.println("Secure Access Control System");
+        System.out.println("===============================================\n");
     }
 
     private static boolean performLogin() {
@@ -116,21 +116,22 @@ public class Main {
         int choice = 0;
 
         do {
-            System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-            System.out.println("║           BUNKER MANAGEMENT SYSTEM - MAIN MENU             ║");
-            System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+            System.out.println("\n===============================================");
+            System.out.println("BUNKER MANAGEMENT SYSTEM - MAIN MENU");
+            System.out.println("===============================================\n");
 
             System.out.println("Logged in as: " + currentUser.getFullName() + " (ID: " + currentUser.getOccupantId() + ")");
             System.out.println("Access Level : " + KeycardAccessFeatures.getAccessLevelName(currentKeycard.getAccessLevel()) + " (Level " + currentKeycard.getAccessLevel() + ")");
 
+
             System.out.println("\n[1] Manage Occupant Profiles");
-            System.out.println("    └─ Register, view, and edit occupant information");
+            System.out.println("    Register, view, and edit occupant information");
 
-            System.out.println("\n[2] Assign Work Duties");
-            System.out.println("    └─ Create and manage occupant work assignments");
+            System.out.println("[2] Assign Work Duties");
+            System.out.println("    Create and manage occupant work assignments");
 
-            System.out.println("\n[3] Manage Room Reservations");
-            System.out.println("    └─ Reserve and schedule bunker rooms/spaces");
+            System.out.println("[3] Manage Room Reservations");
+            System.out.println("    Reserve and schedule bunker rooms/spaces");
 
             System.out.println("\n[0] Logout & Exit System");
 
@@ -170,15 +171,16 @@ public class Main {
                         break;
                     }
                     System.out.println("\nLaunching Room Reservation System...\n");
+                    ManageRoomReservations.setCurrentUser(currentUser.getFullName());
                     ManageRoomReservations.setLoggedOccupantLastName(currentUser.getLastName());
                     ManageRoomReservations.main(new String[]{});
                     break;
 
                 case 0:
-                    System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-                    System.out.println("║         Thank you for using the Bunker System!             ║");
-                    System.out.println("║         Secure location access terminated.                 ║");
-                    System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+                    System.out.println("\n===============================================");
+                    System.out.println("Thank you for using the Bunker System!");
+                    System.out.println("Secure location access terminated.");
+                    System.out.println("===============================================\n");
                     System.exit(0);
                     break;
 

@@ -1,12 +1,15 @@
 package Features;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 /**
  * RoomReservationPayment - Extends PaymentFramework to handle payment for room reservations.
  * Ensures all reservation transactions are charged with proper tax and discount application.
  */
 public class RoomReservationPayment extends PaymentFramework {
+
+    private static ArrayList<RoomReservationPayment> transactions = new ArrayList<>();
 
     private double roomRate;
     private double durationHours;
@@ -55,13 +58,17 @@ public class RoomReservationPayment extends PaymentFramework {
      */
     public void processReservationPayment(double setBalance) {
         this.balance = setBalance;
+        double existingDiscount = this.discount;
 
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║     PROCESSING PAYMENT FOR RESERVATION     ║");
-        System.out.println("╚════════════════════════════════════════╝");
+        System.out.println("\n===============================================");
+        System.out.println("PROCESSING PAYMENT FOR RESERVATION");
+        System.out.println("===============================================");
 
         processInvoice(0, balance, TAX_RATE);
+        this.discount = existingDiscount;
+
         displayIncomeStatement();
+        transactions.add(this);
     }
 
     /**
@@ -72,20 +79,20 @@ public class RoomReservationPayment extends PaymentFramework {
         double taxAmount = baseAmount * TAX_RATE;
         double totalAmount = baseAmount + taxAmount;
 
-        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
-        System.out.println("║                    INCOME STATEMENT                          ║");
-        System.out.println("║                 Room Reservation Invoice                     ║");
-        System.out.println("╚══════════════════════════════════════════════════════════════╝");
+        System.out.println("\n===============================================");
+        System.out.println("INCOME STATEMENT");
+        System.out.println("Room Reservation Invoice");
+        System.out.println("===============================================");
 
         System.out.println("\nTransaction Details:");
-        System.out.println("══════════════════════════════════════════════════════════════");
+        System.out.println("-----------------------------------------------");
         System.out.println("Transaction ID          : " + transactionID);
         System.out.println("Room Name              : " + roomName);
         System.out.println("Duration               : " + String.format("%.2f", durationHours) + " hours");
         System.out.println("Room Rate              : $" + String.format("%.2f", roomRate) + "/hour");
 
         System.out.println("\nFinancial Summary:");
-        System.out.println("══════════════════════════════════════════════════════════════");
+        System.out.println("-----------------------------------------------");
         System.out.println("Base Amount            : $" + String.format("%10.2f", baseAmount));
 
         if (discount > 0) {
@@ -96,17 +103,17 @@ public class RoomReservationPayment extends PaymentFramework {
 
         taxAmount = baseAmount * TAX_RATE;
         System.out.println("Tax (12% VAT)          : $" + String.format("%10.2f", taxAmount));
-        System.out.println("══════════════════════════════════════════════════════════════");
+        System.out.println("-----------------------------------------------");
         totalAmount = baseAmount + taxAmount;
         System.out.println("TOTAL AMOUNT DUE       : $" + String.format("%10.2f", totalAmount));
-        System.out.println("══════════════════════════════════════════════════════════════");
+        System.out.println("-----------------------------------------------");
 
-        System.out.println("\nPayment Status         : ✓ COMPLETED");
+        System.out.println("\nPayment Status         : COMPLETED");
         System.out.println("Date & Time            : " + LocalDateTime.now());
 
-        System.out.println("\n╔══════════════════════════════════════════════════════════════╗");
-        System.out.println("║          Thank you for your reservation!                     ║");
-        System.out.println("╚══════════════════════════════════════════════════════════════╝\n");
+        System.out.println("\n===============================================");
+        System.out.println("Thank you for your reservation!");
+        System.out.println("===============================================\n");
     }
 
     /**
@@ -126,6 +133,10 @@ public class RoomReservationPayment extends PaymentFramework {
      */
     public double getFinalAmount() {
         return subtotal + (subtotal * TAX_RATE);
+    }
+
+    public double getTotalAmount() {
+        return getFinalAmount();
     }
 
     /**
@@ -149,5 +160,23 @@ public class RoomReservationPayment extends PaymentFramework {
 
     public String getRoomName() {
         return roomName;
+    }
+
+    public static void displayAllTransactions() {
+        System.out.println("\n===============================================");
+        System.out.println("ALL TRANSACTION SUMMARIES");
+        System.out.println("===============================================");
+
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions found.");
+            return;
+        }
+
+        for (RoomReservationPayment tx : transactions) {
+            System.out.println("Transaction ID : " + tx.getTransactionID());
+            System.out.println("Room Name      : " + tx.getRoomName());
+            System.out.println("Total Amount   : $" + String.format("%.2f", tx.getTotalAmount()));
+            System.out.println("-----------------------------------------------");
+        }
     }
 }

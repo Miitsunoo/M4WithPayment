@@ -33,9 +33,9 @@ public class KeycardAccessFeatures {
             }
         }
         
-        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║         Thank you for using the Bunker System             ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("\n===============================================");
+        System.out.println("Thank you for using the Bunker System");
+        System.out.println("===============================================\n");
         scanner.close();
     }
 
@@ -43,10 +43,10 @@ public class KeycardAccessFeatures {
      * Display welcome banner
      */
     private static void displayWelcome() {
-        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║          BUNKER SYSTEM - KEYCARD ACCESS CONTROL            ║");
-        System.out.println("║                     LOGIN SYSTEM                           ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("\n===============================================");
+        System.out.println("BUNKER SYSTEM - KEYCARD ACCESS CONTROL");
+        System.out.println("LOGIN SYSTEM");
+        System.out.println("===============================================\n");
     }
 
     /**
@@ -128,14 +128,14 @@ public class KeycardAccessFeatures {
      * Display verified user information
      */
     public static void displayVerification(Occupant user, Keycard card) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║                   USER VERIFICATION                        ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝");
-        System.out.println("\n✓ Verification Details:");
+        System.out.println("===============================================");
+        System.out.println("USER VERIFICATION");
+        System.out.println("===============================================");
+        System.out.println("\nVerification Details:");
         System.out.println("  First Name    : " + user.getFirstName());
         System.out.println("  Last Name     : " + user.getLastName());
         System.out.println("  Occupant ID   : " + user.getOccupantId());
-        System.out.println("\n✓ Keycard Details:");
+        System.out.println("\nKeycard Details:");
         System.out.println("  Keycard ID    : " + card.getKeycardId());
         System.out.println("  Keycard Code  : " + card.getKeycardCode());
         System.out.println("  Status        : " + (card.isActive() ? "ACTIVE" : "INACTIVE"));
@@ -151,24 +151,24 @@ public class KeycardAccessFeatures {
     public static void accessFeatures(Occupant user, Keycard card) {
 
         while (true) {
-            System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-            System.out.println("║                    SYSTEM FEATURES MENU                    ║");
-            System.out.println("╚════════════════════════════════════════════════════════════╝");
+System.out.println("\n===============================================");
+        System.out.println("SYSTEM FEATURES MENU");
+        System.out.println("===============================================");
 
             System.out.println("\nLogged in as: " + user.getFullName() + " (" + getAccessLevelName(card.getAccessLevel()) + " - Level " + card.getAccessLevel() + ")");
             System.out.println("\nAvailable Features:\n");
 
             System.out.println("[1] View Keycard Access Information");
-            System.out.println("    └─ View detailed keycard information");
+            System.out.println("    View detailed keycard information");
 
             System.out.println("[2] Manage Occupant Profiles");
-            System.out.println("    └─ Requires Admin access (level 3)");
+            System.out.println("    Requires Admin access (level 3)");
 
             System.out.println("[3] Assign Work Duties");
-            System.out.println("    └─ Requires Employee access (level 2)");
+            System.out.println("    Requires Employee access (level 2)");
 
             System.out.println("[4] Manage Room Reservations");
-            System.out.println("    └─ Available to all access levels");
+            System.out.println("    Available to all access levels");
 
             System.out.println("\n[0] Logout");
             System.out.print("\nSelect feature (0-4): ");
@@ -260,9 +260,9 @@ public class KeycardAccessFeatures {
      * Display keycard access information
      */
     private static void displayKeycardAccessInfo(Occupant user, Keycard card) {
-        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║           KEYCARD ACCESS INFORMATION                       ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝");
+        System.out.println("\n===============================================");
+        System.out.println("KEYCARD ACCESS INFORMATION");
+        System.out.println("===============================================");
         
         System.out.println("\nYour Keycard Details:");
         System.out.println("  Keycard ID    : " + card.getKeycardId());
@@ -287,9 +287,9 @@ public class KeycardAccessFeatures {
      * (From DatabaseTest.class functionality)
      */
     public static void mainDatabaseTest(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║              BUNKER SYSTEM - DATABASE TEST                 ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("===============================================");
+        System.out.println("BUNKER SYSTEM - DATABASE TEST");
+        System.out.println("===============================================\n");
 
         // Test database connection
         Database.DatabaseConnection.testConnection();
@@ -308,9 +308,9 @@ public class KeycardAccessFeatures {
      * (From AssignKeycards.class functionality)
      */
     public static void mainAssignKeycards(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║           BUNKER SYSTEM - KEYCARD ASSIGNMENT               ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("===============================================");
+        System.out.println("BUNKER SYSTEM - KEYCARD ASSIGNMENT");
+        System.out.println("===============================================\n");
 
         int assigned = Repositories.KeycardRepo.assignKeycardsToOccupantsWithoutCards();
 
@@ -323,9 +323,9 @@ public class KeycardAccessFeatures {
      * (From AssignRandomKeycards.class functionality)
      */
     public static void mainAssignRandomLevels(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║        BUNKER SYSTEM - RANDOM LEVEL ASSIGNMENT            ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("===============================================");
+        System.out.println("BUNKER SYSTEM - RANDOM LEVEL ASSIGNMENT");
+        System.out.println("===============================================\n");
 
         int updated = Repositories.KeycardRepo.assignRandomKeycardLevels();
 
@@ -338,9 +338,9 @@ public class KeycardAccessFeatures {
      * (From RegistrationTest.class functionality)
      */
     public static void mainRegistrationTest(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║          BUNKER SYSTEM - REGISTRATION TEST                ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("===============================================");
+        System.out.println("BUNKER SYSTEM - REGISTRATION TEST");
+        System.out.println("===============================================\n");
 
         boolean success = Repositories.OccupantRepo.testRegistrationProcess();
 
@@ -353,9 +353,9 @@ public class KeycardAccessFeatures {
      * (From SchemaTest.class functionality)
      */
     public static void mainSchemaTest(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║            BUNKER SYSTEM - SCHEMA TEST                    ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("===============================================");
+        System.out.println("BUNKER SYSTEM - SCHEMA TEST");
+        System.out.println("===============================================\n");
 
         Database.DatabaseConnection.testDatabaseSchema();
 
@@ -367,9 +367,9 @@ public class KeycardAccessFeatures {
      * (From TestOccupants.class functionality)
      */
     public static void mainOccupantTest(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════════════════╗");
-        System.out.println("║            BUNKER SYSTEM - OCCUPANT TEST                  ║");
-        System.out.println("╚════════════════════════════════════════════════════════════╝\n");
+        System.out.println("===============================================");
+        System.out.println("BUNKER SYSTEM - OCCUPANT TEST");
+        System.out.println("===============================================\n");
 
         Repositories.OccupantRepo.displayOccupantSummary();
 
