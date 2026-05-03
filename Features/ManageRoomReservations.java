@@ -1,6 +1,8 @@
 package Features;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -152,6 +154,26 @@ public class ManageRoomReservations {
         }
     }
 
+    /**
+     * Check if there are overlapping reservations for a given room and time range
+     */
+    static boolean hasOverlappingReservation(String room, LocalDateTime checkIn, LocalDateTime checkOut) {
+        for (Reservation r : reservations) {
+            if (r.getRoom().equalsIgnoreCase(room)) {
+                // Check if times overlap: checkIn < r.endTime AND r.startTime < checkOut
+                LocalTime rStart = r.getStartTime();
+                LocalTime rEnd = r.getEndTime();
+                LocalTime cStart = checkIn.toLocalTime();
+                LocalTime cEnd = checkOut.toLocalTime();
+                
+                if (cStart.isBefore(rEnd) && rStart.isBefore(cEnd)) {
+                    return true; // Overlap found
+                }
+            }
+        }
+        return false;
+    }
+
     // FEATURE 1: ROOM & SPACE RESERVATION WITH PAYMENT INTEGRATION
     static void reserveRoom(Scanner sc) {
         String name;
@@ -183,39 +205,31 @@ public class ManageRoomReservations {
             return;
         }
 
-        System.out.print("Enter Schedule (e.g. 10AM-12PM or 09:00-11:00): ");
-        String schedule = sc.nextLine().trim();
-        LocalTime[] parsedSchedule = parseSchedule(schedule);
-        if (parsedSchedule == null) {
-            System.out.println("Invalid schedule format. Use examples like 10AM-12PM or 09:00-11:00.");
-            return;
-        }
-
-        if (!isRoomAvailable(room, schedule)) {
-            return;
-        }
-
-        LocalTime startTime = parsedSchedule[0];
-        LocalTime endTime = parsedSchedule[1];
-        double scheduleDurationHours = computeDurationHours(startTime, endTime);
-        if (scheduleDurationHours <= 0) {
-            System.out.println("Invalid schedule. End time must be later than start time.");
-            return;
-        }
-
-        System.out.print("Enter Room Rate ($): ");
-        double roomRate;
+        // Get Check-in Date
+        System.out.print("Enter Check-in Date (YYYY-MM-DD): ");
+        String dateStr = sc.nextLine().trim();
+        LocalDate checkInDate;
         try {
-            roomRate = Double.parseDouble(sc.nextLine().trim());
-            if (roomRate <= 0) {
-                System.out.println("Invalid room rate. Must be a positive number.");
-                return;
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid room rate. Please enter a valid number.");
+            checkInDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format. Use YYYY-MM-DD (e.g., 2026-05-15).");
             return;
         }
 
+        // Get Check-in Time
+        System.out.print("Enter Check-in Time (HH:MM in 24-hour format): ");
+        String timeStr = sc.nextLine().trim();
+        LocalTime checkInTimeOfDay;
+        try {
+            checkInTimeOfDay = LocalTime.parse(timeStr, DateTimeFormatter.ISO_LOCAL_TIME);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid time format. Use HH:MM (e.g., 14:30).");
+            return;
+        }
+
+        LocalDateTime checkInDateTime = LocalDateTime.of(checkInDate, checkInTimeOfDay);
+
+        // Get Duration in hours
         System.out.print("Enter Duration in hours: ");
         int durationHours;
         try {
@@ -226,6 +240,30 @@ public class ManageRoomReservations {
             }
         } catch (NumberFormatException e) {
             System.out.println("Invalid duration. Please enter a valid integer.");
+            return;
+        }
+
+        // Calculate check-out time automatically
+        LocalDateTime checkOutDateTime = checkInDateTime.plusHours(durationHours);
+
+        // Check for duplicate/overlapping reservations
+        if (hasOverlappingReservation(room, checkInDateTime, checkOutDateTime)) {
+            System.out.println("ERROR: This room has a conflicting reservation during the selected period.");
+            System.out.println("Check-in: " + checkInDateTime);
+            System.out.println("Check-out: " + checkOutDateTime);
+            return;
+        }
+
+        System.out.print("Enter Room Rate ($ per hour): ");
+        double roomRate;
+        try {
+            roomRate = Double.parseDouble(sc.nextLine().trim());
+            if (roomRate <= 0) {
+                System.out.println("Invalid room rate. Must be a positive number.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid room rate. Please enter a valid number.");
             return;
         }
 
@@ -250,11 +288,21 @@ public class ManageRoomReservations {
         double balance = payment.getFinalAmount();
         payment.processReservationPayment(balance);
 
-        RoomReservation newRes = new RoomReservation(nextId++, name, room, schedule, startTime, endTime, payment.getTransactionID(), balance);
+        // Create reservation with new check-in/check-out times
+        String scheduleDisplay = checkInDateTime + " to " + checkOutDateTime;
+        RoomReservation newRes = new RoomReservation(nextId++, name, room, scheduleDisplay, checkInDateTime.toLocalTime(), checkOutDateTime.toLocalTime(), payment.getTransactionID(), balance);
         reservations.add(newRes);
 
-        System.out.println("Reservation successful.");
+        System.out.println("\n========== RESERVATION CONFIRMED ==========");
+        System.out.println("Occupant: " + name);
+        System.out.println("Room: " + room);
+        System.out.println("Check-in: " + checkInDateTime);
+        System.out.println("Check-out: " + checkOutDateTime);
+        System.out.println("Duration: " + durationHours + " hours");
+        System.out.println("Room Rate: $" + String.format("%.2f", roomRate) + "/hour");
         System.out.println("Total charged: $" + String.format("%.2f", balance));
+        System.out.println("Transaction ID: " + payment.getTransactionID());
+        System.out.println("==========================================");
     }
 
     // FEATURE 2: SCHEDULING & AVAILABILITY - FLOOR-BASED ROOM INVENTORY
@@ -331,7 +379,7 @@ public class ManageRoomReservations {
     static String getRoomStatus(String roomNumber) {
         for (Reservation r : reservations) {
             if (r.getRoom().equals(roomNumber)) {
-                return "Reserved (" + r.getSchedule() + ")";
+                return "Reserved (Check-in: " + r.getStartTime() + ")";
             }
         }
         return "Available";
@@ -358,7 +406,8 @@ public class ManageRoomReservations {
         System.out.println("Reservation ID : " + r.getId());
         System.out.println("Occupant Name  : " + r.getName());
         System.out.println("Room/Space     : " + r.getRoom());
-        System.out.println("Schedule       : " + r.getSchedule());
+        System.out.println("Check-in Time  : " + r.getStartTime());
+        System.out.println("Check-out Time : " + r.getEndTime());
         System.out.println("Status         : " + r.getDetails());
         if (r instanceof RoomReservation) {
             RoomReservation rr = (RoomReservation) r;
