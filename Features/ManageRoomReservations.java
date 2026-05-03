@@ -205,17 +205,6 @@ public class ManageRoomReservations {
             return;
         }
 
-        // Get Check-in Date
-        System.out.print("Enter Check-in Date (YYYY-MM-DD): ");
-        String dateStr = sc.nextLine().trim();
-        LocalDate checkInDate;
-        try {
-            checkInDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE);
-        } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Use YYYY-MM-DD (e.g., 2026-05-15).");
-            return;
-        }
-
         // Get Check-in Time
         System.out.print("Enter Check-in Time (HH:MM in 24-hour format): ");
         String timeStr = sc.nextLine().trim();
@@ -227,7 +216,7 @@ public class ManageRoomReservations {
             return;
         }
 
-        LocalDateTime checkInDateTime = LocalDateTime.of(checkInDate, checkInTimeOfDay);
+        LocalDateTime checkInDateTime = LocalDateTime.of(LocalDate.now(), checkInTimeOfDay);
 
         // Get Duration in hours
         System.out.print("Enter Duration in hours: ");
